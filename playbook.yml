@@ -1,7 +1,9 @@
 - hosts: webservers
   roles:
     - webServer
+
+- hosts: prometheus
+  roles:
     - prometheus
     - healthCheck
-
     
