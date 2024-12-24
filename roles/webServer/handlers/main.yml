@@ -1,0 +1,6 @@
+---
+# handlers/main.yml
+- name: Restart Nginx container
+  docker_container:
+    name: "{{ webserver_name }}"
+    state: restarted

@@ -1,0 +1,3 @@
+---
+# defaults/main.yml
+webserver_name: nginx-server

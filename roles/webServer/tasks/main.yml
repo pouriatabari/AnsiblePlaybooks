@@ -1,0 +1,29 @@
+---
+# tasks/main.yml
+- name: Pull Nginx image
+  docker_image:
+    name: nginx
+    source: pull
+
+- name: Deploy Nginx container
+  docker_container:
+    name: "{{ webserver_name }}"
+    image: nginx
+    state: started
+    ports:
+      - "80:80"
+    volumes:
+      - "/var/www/{{ webserver_name }}/index.html:/usr/share/nginx/html/index.html:ro"
+
+- name: Copy custom index.html
+  template:
+    src: index.html.j2
+    dest: "/var/www/{{ webserver_name }}/index.html"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Ensure container is running
+  docker_container:
+    name: "{{ webserver_name }}"
+    state: started
