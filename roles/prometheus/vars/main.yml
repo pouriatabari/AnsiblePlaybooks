@@ -1,0 +1,5 @@
+---
+# vars/main.yml
+
+pushgateway_port: 9091
+alertmanager_port: 9093

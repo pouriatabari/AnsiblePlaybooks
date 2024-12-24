@@ -1,0 +1,12 @@
+---
+# handlers/main.yml
+
+- name: Restart Push Gateway
+  docker_container:
+    name: pushgateway
+    state: restarted
+
+- name: Restart Alert Manager
+  docker_container:
+    name: alertmanager
+    state: restarted

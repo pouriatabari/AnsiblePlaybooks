@@ -1,0 +1,35 @@
+---
+# tasks/main.yml
+
+- name: Pull Prometheus Push Gateway image
+  docker_image:
+    name: prom/pushgateway
+    source: pull
+
+- name: Run Prometheus Push Gateway container
+  docker_container:
+    name: pushgateway
+    image: prom/pushgateway
+    state: started
+    ports:
+      - "9091:9091"
+
+- name: Pull Alert Manager image
+  docker_image:
+    name: prom/alertmanager
+    source: pull
+
+- name: Copy Alert Manager configuration
+  template:
+    src: alertmanager.yml.j2
+    dest: /etc/alertmanager/alertmanager.yml
+
+- name: Run Alert Manager container
+  docker_container:
+    name: alertmanager
+    image: prom/alertmanager
+    state: started
+    ports:
+      - "9093:9093"
+    volumes:
+      - "/etc/alertmanager:/etc/alertmanager:ro"
