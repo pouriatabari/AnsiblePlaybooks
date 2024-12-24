@@ -1,0 +1,17 @@
+- name: Copy health check script
+  copy:
+    src: roles/health_check/files/healthCheck.sh
+    dest: /usr/local/bin/healthCheck.sh
+    mode: '0755'
+
+- name: Copy webhook handler script
+  copy:
+    src: roles/health_check/files/webhookHandler.sh
+    dest: /usr/local/bin/webhookHandler.sh
+    mode: '0755'
+
+- name: Start health check script
+  shell: nohup bash /usr/local/bin/healthCheck.sh > /var/log/healthCheck.log 2>&1 &
+
+- name: Start webhook handler script
+  shell: nohup bash /usr/local/bin/webhookHandler.sh > /var/log/webhookHandler.log 2>&1 &
