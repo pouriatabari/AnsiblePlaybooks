@@ -5,21 +5,28 @@
       - curl
     state: present
 
-- name: Create keyrings directory
-  file:
+- name: Check if keyring directory exists
+  stat:
     path: /etc/apt/keyrings
-    state: directory
-    mode: '0755'
+  register: keyring_stat
 
-- name: Add Docker's official GPG key
-  get_url:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    dest: /etc/apt/keyrings/docker.asc
-    mode: '0644'
+- name: Add Docker's official GPG key using keyring if directory exists
+  shell: |
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee /etc/apt/keyrings/docker.asc > /dev/null
+  when: keyring_stat.stat.exists
+  args:
+    creates: /etc/apt/keyrings/docker.asc
+
+- name: Add Docker's official GPG key using trusted.gpg.d if keyring directory doesn't exist
+  shell: |
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  when: not keyring_stat.stat.exists
+  args:
+    creates: /etc/apt/trusted.gpg.d/docker.asc
 
 - name: Add Docker repository to Apt sources
   shell: |
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo \"$VERSION_CODENAME\") stable" > /etc/apt/sources.list.d/docker.list
+    echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
   args:
     creates: /etc/apt/sources.list.d/docker.list
 
