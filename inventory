@@ -4,4 +4,4 @@ server2 ansible_host=192.168.72.21
 server3 ansible_host=192.168.72.22
 
 [prometheus]
-prometheus1 ansible_host=192.168.1.13 ansible_user=root
+prometheus1 ansible_host=192.168.72.23 ansible_user=root
