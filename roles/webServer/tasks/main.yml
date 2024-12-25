@@ -1,19 +1,15 @@
 ---
 # tasks/main.yml
 - name: Pull Nginx image
-  docker_image:
-    name: nginx
-    source: pull
+  command: docker pull nginx
 
-- name: Deploy Nginx container
-  docker_container:
-    name: "{{ webserver_name }}"
-    image: nginx
-    state: started
-    ports:
-      - "80:80"
-    volumes:
-      - "/var/www/{{ webserver_name }}/index.html:/usr/share/nginx/html/index.html:ro"
+- name: Create directories for custom HTML
+  file:
+    path: "/var/www/{{ webserver_name }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
 
 - name: Copy custom index.html
   template:
@@ -23,7 +19,15 @@
     group: root
     mode: 0644
 
+- name: Deploy Nginx container
+  shell: |
+    docker run --name {{ webserver_name }} -d \
+    -p 80:80 \
+    -v /var/www/{{ webserver_name }}/index.html:/usr/share/nginx/html/index.html:ro \
+    nginx
+  args:
+    creates: "/var/lib/docker/containers/{{ webserver_name }}"
+
 - name: Ensure container is running
-  docker_container:
-    name: "{{ webserver_name }}"
-    state: started
+  shell: |
+    docker start {{ webserver_name }} || docker restart {{ webserver_name }}
