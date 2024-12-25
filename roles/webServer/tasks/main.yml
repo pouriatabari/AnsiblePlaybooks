@@ -21,12 +21,14 @@
     mode: 0644
 
 - name: Check if Nginx container exists
-  shell: docker ps -a --filter "name={{ webserver_name }}" --format "{{ '{{' }}.Names{{ '}' }}"
+  shell: >
+    docker ps -a --filter "name={{ webserver_name }}" --format '{{"{{"}}.Names{{"}}"}}'
   register: nginx_container_check
   changed_when: false
 
 - name: Check if Nginx container is running
-  shell: docker inspect -f '{{ '{{' }}.State.Running{{ '}' }}' {{ webserver_name }}
+  shell: >
+    docker inspect -f '{{"{{"}}.State.Running{{"}}"}}' {{ webserver_name }}
   when: nginx_container_check.stdout.strip() == "{{ webserver_name }}"
   register: nginx_container_running
   changed_when: false
