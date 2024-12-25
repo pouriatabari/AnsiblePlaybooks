@@ -1,0 +1,7 @@
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+- name: Restart health check timer
+  systemd:
+    name: healthCheck.timer
+    state: restarted

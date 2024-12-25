@@ -4,14 +4,37 @@
     dest: /usr/local/bin/healthCheck.sh
     mode: '0755'
 
-- name: Copy webhook handler script
+- name: Create systemd service file for health check
   copy:
-    src: roles/healthCheck/files/webhookHandler.sh
-    dest: /usr/local/bin/webhookHandler.sh
-    mode: '0755'
+    dest: /etc/systemd/system/healthCheck.service
+    content: |
+      [Unit]
+      Description=Health Check Script
+      After=network.target
 
-- name: Start health check script
-  shell: nohup bash /usr/local/bin/healthCheck.sh > /var/log/healthCheck.log 2>&1 &
+      [Service]
+      ExecStart=/usr/local/bin/healthCheck.sh
+      Restart=always
+      Type=simple
+  notify: Reload systemd
 
-- name: Start webhook handler script
-  shell: nohup bash /usr/local/bin/webhookHandler.sh > /var/log/webhookHandler.log 2>&1 &
+- name: Create systemd timer file for health check
+  copy:
+    dest: /etc/systemd/system/healthCheck.timer
+    content: |
+      [Unit]
+      Description=Run Health Check Every 1 Second
+
+      [Timer]
+      OnUnitActiveSec=1s
+      Unit=healthCheck.service
+
+      [Install]
+      WantedBy=timers.target
+  notify: Reload systemd
+
+- name: Enable health check timer
+  systemd:
+    name: healthCheck.timer
+    enabled: yes
+    state: started
