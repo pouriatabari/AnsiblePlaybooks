@@ -3,6 +3,7 @@
     name:
       - ca-certificates
       - curl
+      - jq
     state: present
 
 - name: Check if keyring directory exists
