@@ -6,7 +6,7 @@
 
 - name: Create directories for custom HTML
   file:
-    path: "/var/www/{{ webserver_name }}"
+    path: "/var/www/{{ inventory_hostname }}"
     state: directory
     owner: root
     group: root
@@ -15,33 +15,33 @@
 - name: Copy custom index.html
   template:
     src: index.html.j2
-    dest: "/var/www/{{ webserver_name }}/index.html"
+    dest: "/var/www/{{ inventory_hostname }}/index.html"
     owner: root
     group: root
     mode: 0644
 
 - name: Check if Nginx container exists
   shell: >
-    docker ps -a --filter "name={{ webserver_name }}" --format '{{"{{"}}.Names{{"}}"}}'
+    docker ps -a --filter "name={{ inventory_hostname }}" --format '{{"{{"}}.Names{{"}}"}}'
   register: nginx_container_check
   changed_when: false
 
 - name: Check if Nginx container is running
   shell: >
-    docker inspect -f '{{"{{"}}.State.Running{{"}}"}}' {{ webserver_name }}
-  when: nginx_container_check.stdout.strip() == "{{ webserver_name }}"
+    docker inspect -f '{{"{{"}}.State.Running{{"}}"}}' {{ inventory_hostname }}
+  when: nginx_container_check.stdout.strip() == "{{ inventory_hostname }}"
   register: nginx_container_running
   changed_when: false
-  failed_when: nginx_container_check.stdout.strip() == "{{ webserver_name }}" and nginx_container_running.rc != 0
+  failed_when: nginx_container_check.stdout.strip() == "{{ inventory_hostname }}" and nginx_container_running.rc != 0
 
 - name: Deploy Nginx container if not created
   shell: |
-    docker run --name {{ webserver_name }} -d \
+    docker run --name {{ inventory_hostname }} -d \
     -p 80:80 \
-    -v /var/www/{{ webserver_name }}/index.html:/usr/share/nginx/html/index.html:ro \
+    -v /var/www/{{ inventory_hostname }}/index.html:/usr/share/nginx/html/index.html:ro \
     nginx
   when: nginx_container_check.stdout.strip() == ""
 
 - name: Start Nginx container if created but not running
-  shell: docker start {{ webserver_name }}
-  when: nginx_container_check.stdout.strip() == "{{ webserver_name }}" and nginx_container_running.stdout.strip() == "false"
+  shell: docker start {{ inventory_hostname }}
+  when: nginx_container_check.stdout.strip() == "{{ inventory_hostname }}" and nginx_container_running.stdout.strip() == "false"

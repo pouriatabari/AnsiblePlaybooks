@@ -1,7 +1,7 @@
 [webservers]
-server1 ansible_host=192.168.72.20
-server2 ansible_host=192.168.72.21
-server3 ansible_host=192.168.72.22
+AbrNoc-WebServer-01 ansible_host=192.168.72.20
+AbrNoc-WebServer-02 ansible_host=192.168.72.21
+AbrNoc-WebServer-03 ansible_host=192.168.72.22
 
 [prometheus]
-prometheus1 ansible_host=192.168.72.23 
+AbrNoc-PromServer-01 ansible_host=192.168.72.23 
