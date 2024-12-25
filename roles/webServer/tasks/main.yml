@@ -1,5 +1,6 @@
 ---
 # tasks/main.yml
+
 - name: Pull Nginx image
   command: docker pull nginx
 
@@ -19,15 +20,26 @@
     group: root
     mode: 0644
 
-- name: Deploy Nginx container
+- name: Check if Nginx container exists
+  shell: docker ps -a --filter "name={{ webserver_name }}" --format "{{ '{{' }}.Names{{ '}' }}"
+  register: nginx_container_check
+  changed_when: false
+
+- name: Check if Nginx container is running
+  shell: docker inspect -f '{{ '{{' }}.State.Running{{ '}' }}' {{ webserver_name }}
+  when: nginx_container_check.stdout.strip() == "{{ webserver_name }}"
+  register: nginx_container_running
+  changed_when: false
+  failed_when: nginx_container_check.stdout.strip() == "{{ webserver_name }}" and nginx_container_running.rc != 0
+
+- name: Deploy Nginx container if not created
   shell: |
     docker run --name {{ webserver_name }} -d \
     -p 80:80 \
     -v /var/www/{{ webserver_name }}/index.html:/usr/share/nginx/html/index.html:ro \
     nginx
-  args:
-    creates: "/var/lib/docker/containers/{{ webserver_name }}"
+  when: nginx_container_check.stdout.strip() == ""
 
-- name: Ensure container is running
-  shell: |
-    docker start {{ webserver_name }} || docker restart {{ webserver_name }}
+- name: Start Nginx container if created but not running
+  shell: docker start {{ webserver_name }}
+  when: nginx_container_check.stdout.strip() == "{{ webserver_name }}" and nginx_container_running.stdout.strip() == "false"
