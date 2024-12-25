@@ -5,7 +5,7 @@ webhook_port=5000
 
 # Receive Webhook Data and Process Alerts
 nc -l -p $webhook_port -q 1 | while read line; do
-  echo $line
+  echo $line;
   # echo "Received alert: $line"
 
   # # Extract the alert status (you may need to adjust this according to the exact structure of your alert)
