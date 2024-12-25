@@ -1,12 +1,12 @@
 - name: Copy health check script
   copy:
-    src: roles/health_check/files/healthCheck.sh
+    src: roles/healthCheck/files/healthCheck.sh
     dest: /usr/local/bin/healthCheck.sh
     mode: '0755'
 
 - name: Copy webhook handler script
   copy:
-    src: roles/health_check/files/webhookHandler.sh
+    src: roles/healthCheck/files/webhookHandler.sh
     dest: /usr/local/bin/webhookHandler.sh
     mode: '0755'
 
