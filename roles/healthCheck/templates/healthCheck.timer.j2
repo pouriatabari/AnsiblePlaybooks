@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Health Check Script Every 1 Second
+
+[Timer]
+OnUnitActiveSec=1s
+Unit=healthCheck.service
+
+[Install]
+WantedBy=timers.target

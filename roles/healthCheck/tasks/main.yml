@@ -1,40 +1,47 @@
 - name: Copy health check script
   copy:
-    src: roles/healthCheck/files/healthCheck.sh
+    src: healthCheck.sh
     dest: /usr/local/bin/healthCheck.sh
     mode: '0755'
+  notify: Restart healthCheck.timer
 
-- name: Create systemd service file for health check
+- name: Copy webhook handler script
   copy:
+    src: webhookHandler.sh
+    dest: /usr/local/bin/webhookHandler.sh
+    mode: '0755'
+  notify: Restart webhookHandler.timer
+
+- name: Deploy healthCheck.service
+  template:
+    src: healthCheck.service.j2
     dest: /etc/systemd/system/healthCheck.service
-    content: |
-      [Unit]
-      Description=Health Check Script
-      After=network.target
+    mode: '0644'
+  notify: Restart healthCheck.timer
 
-      [Service]
-      ExecStart=/usr/local/bin/healthCheck.sh
-      Restart=always
-      Type=simple
-  notify: Reload systemd
-
-- name: Create systemd timer file for health check
-  copy:
+- name: Deploy healthCheck.timer
+  template:
+    src: healthCheck.timer.j2
     dest: /etc/systemd/system/healthCheck.timer
-    content: |
-      [Unit]
-      Description=Run Health Check Every 1 Second
+    mode: '0644'
+  notify: Restart healthCheck.timer
 
-      [Timer]
-      OnUnitActiveSec=1s
-      Unit=healthCheck.service
+- name: Deploy webhookHandler.service
+  template:
+    src: webhookHandler.service.j2
+    dest: /etc/systemd/system/webhookHandler.service
+    mode: '0644'
+  notify: Restart webhookHandler.timer
 
-      [Install]
-      WantedBy=timers.target
-  notify: Reload systemd
+- name: Deploy webhookHandler.timer
+  template:
+    src: webhookHandler.timer.j2
+    dest: /etc/systemd/system/webhookHandler.timer
+    mode: '0644'
+  notify: Restart webhookHandler.timer
 
-- name: Enable health check timer
-  systemd:
-    name: healthCheck.timer
-    enabled: yes
-    state: started
+- name: Reload systemd daemon
+  command: systemctl daemon-reload
+  notify:
+    - Restart healthCheck.timer
+    - Restart webhookHandler.timer

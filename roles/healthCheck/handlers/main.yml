@@ -1,7 +1,11 @@
-- name: Reload systemd
-  command: systemctl daemon-reload
-
-- name: Restart health check timer
+- name: Restart healthCheck.timer
   systemd:
     name: healthCheck.timer
     state: restarted
+    enabled: yes
+
+- name: Restart webhookHandler.timer
+  systemd:
+    name: webhookHandler.timer
+    state: restarted
+    enabled: yes

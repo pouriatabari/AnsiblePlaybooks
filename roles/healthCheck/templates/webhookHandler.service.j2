@@ -1,0 +1,8 @@
+[Unit]
+Description=Webhook Handler Script
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/webhookHandler.sh
+StandardOutput=journal
+StandardError=journal

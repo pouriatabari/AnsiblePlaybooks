@@ -1,0 +1,8 @@
+[Unit]
+Description=Health Check Script
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/healthCheck.sh
+StandardOutput=journal
+StandardError=journal

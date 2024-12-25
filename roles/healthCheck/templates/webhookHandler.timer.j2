@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Webhook Handler Script Every 1 Second
+
+[Timer]
+OnUnitActiveSec=1s
+Unit=webhookHandler.service
+
+[Install]
+WantedBy=timers.target
