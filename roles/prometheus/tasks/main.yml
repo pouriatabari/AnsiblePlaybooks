@@ -62,7 +62,9 @@
 
 - name: Restart Alert Manager container if configuration changes
   shell: docker restart alertmanager
-  when: alertmanager_config_changed.changed
+  when: 
+    - alertmanager_config_changed.changed
+    - alertmanager_check.stdout.strip() == "alertmanager"
 
 - name: Deploy Alert Manager container if not created
   shell: |
