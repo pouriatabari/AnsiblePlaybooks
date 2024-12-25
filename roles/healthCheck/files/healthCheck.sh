@@ -17,7 +17,7 @@ while true; do
 
     # Sending Metrics to the Push Gateway
     metric_data="webserver_health{server=\"$server\"} $status"
-    curl -X POST --data-binary "$metric_data" "$pushgateway_url"
+    echo "$metric_data" | curl -X POST --data-binary @- "$pushgateway_url"
     echo "Health status of $server: $status"
   done
   # Running Script every 60s
