@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Web Server Address List
-webservers=("http://192.168.1.10" "http://192.168.1.11" "http://192.168.1.12")
+webservers=("http://192.168.72.20" "http://192.168.72.21" "http://192.168.72.22")
 
 # Push Gateway Address List
-pushgateway_url="http://192.168.1.13:9091/metrics/job/webserver_health"
+pushgateway_url="http://192.168.72.23:9091/metrics/job/webserver_health"
 
 while true; do
   for server in "${webservers[@]}"; do
