@@ -71,7 +71,7 @@
     docker run --name alertmanager -d \
     -p 9093:9093 \
     -v /etc/alertmanager:/etc/alertmanager:ro \
-    prom/alertmanager
+    prom/alertmanager --log.level=debug
   when: alertmanager_check.stdout.strip() == ""
 
 - name: Start Alert Manager container if created but not running
