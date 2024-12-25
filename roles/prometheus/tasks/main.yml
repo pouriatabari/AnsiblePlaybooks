@@ -2,34 +2,68 @@
 # tasks/main.yml
 
 - name: Pull Prometheus Push Gateway image
-  docker_image:
-    name: prom/pushgateway
-    source: pull
+  command: docker pull prom/pushgateway
 
-- name: Run Prometheus Push Gateway container
-  docker_container:
-    name: pushgateway
-    image: prom/pushgateway
-    state: started
-    ports:
-      - "9091:9091"
+- name: Check if Prometheus Push Gateway container exists
+  shell: >
+    docker ps -a --filter "name=pushgateway" --format '{{"{{"}}.Names{{"}}"}}'
+  register: pushgateway_check
+  changed_when: false
+
+- name: Check if Prometheus Push Gateway container is running
+  shell: >
+    docker inspect -f '{{"{{"}}.State.Running{{"}}"}}' pushgateway
+  when: pushgateway_check.stdout.strip() == "pushgateway"
+  register: pushgateway_running
+  changed_when: false
+  failed_when: pushgateway_check.stdout.strip() == "pushgateway" and pushgateway_running.rc != 0
+
+- name: Deploy Prometheus Push Gateway container if not created
+  shell: |
+    docker run --name pushgateway -d \
+    -p 9091:9091 \
+    prom/pushgateway
+  when: pushgateway_check.stdout.strip() == ""
+
+- name: Start Prometheus Push Gateway container if created but not running
+  shell: docker start pushgateway
+  when: pushgateway_check.stdout.strip() == "pushgateway" and pushgateway_running.stdout.strip() == "false"
 
 - name: Pull Alert Manager image
-  docker_image:
-    name: prom/alertmanager
-    source: pull
+  command: docker pull prom/alertmanager
+
+- name: Check if Alert Manager container exists
+  shell: >
+    docker ps -a --filter "name=alertmanager" --format '{{"{{"}}.Names{{"}}"}}'
+  register: alertmanager_check
+  changed_when: false
+
+- name: Check if Alert Manager container is running
+  shell: >
+    docker inspect -f '{{"{{"}}.State.Running{{"}}"}}' alertmanager
+  when: alertmanager_check.stdout.strip() == "alertmanager"
+  register: alertmanager_running
+  changed_when: false
+  failed_when: alertmanager_check.stdout.strip() == "alertmanager" and alertmanager_running.rc != 0
 
 - name: Copy Alert Manager configuration
   template:
     src: alertmanager.yml.j2
     dest: /etc/alertmanager/alertmanager.yml
+  register: alertmanager_config_changed
 
-- name: Run Alert Manager container
-  docker_container:
-    name: alertmanager
-    image: prom/alertmanager
-    state: started
-    ports:
-      - "9093:9093"
-    volumes:
-      - "/etc/alertmanager:/etc/alertmanager:ro"
+- name: Restart Alert Manager container if configuration changes
+  shell: docker restart alertmanager
+  when: alertmanager_config_changed.changed
+
+- name: Deploy Alert Manager container if not created
+  shell: |
+    docker run --name alertmanager -d \
+    -p 9093:9093 \
+    -v /etc/alertmanager:/etc/alertmanager:ro \
+    prom/alertmanager
+  when: alertmanager_check.stdout.strip() == ""
+
+- name: Start Alert Manager container if created but not running
+  shell: docker start alertmanager
+  when: alertmanager_check.stdout.strip() == "alertmanager" and alertmanager_running.stdout.strip() == "false"
