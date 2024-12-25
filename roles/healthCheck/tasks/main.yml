@@ -1,47 +1,52 @@
-- name: Copy health check script
-  copy:
-    src: healthCheck.sh
-    dest: /usr/local/bin/healthCheck.sh
-    mode: '0755'
-  notify: Restart healthCheck.timer
+---
+- name: Deploy health check and webhook handler scripts
+  hosts: all
+  become: true
+  tasks:
+    - name: Copy health check script
+      copy:
+        src: healthCheck.sh
+        dest: /usr/local/bin/healthCheck.sh
+        mode: '0755'
+      notify: Restart healthCheck.timer
 
-- name: Copy webhook handler script
-  copy:
-    src: webhookHandler.sh
-    dest: /usr/local/bin/webhookHandler.sh
-    mode: '0755'
-  notify: Restart webhookHandler.timer
+    - name: Copy webhook handler script
+      copy:
+        src: webhookHandler.sh
+        dest: /usr/local/bin/webhookHandler.sh
+        mode: '0755'
+      notify: Restart webhookHandler.timer
 
-- name: Deploy healthCheck.service
-  template:
-    src: healthCheck.service.j2
-    dest: /etc/systemd/system/healthCheck.service
-    mode: '0644'
-  notify: Restart healthCheck.timer
+    - name: Deploy healthCheck.service
+      template:
+        src: healthCheck.service.j2
+        dest: /etc/systemd/system/healthCheck.service
+        mode: '0644'
+      notify: Restart healthCheck.service
 
-- name: Deploy healthCheck.timer
-  template:
-    src: healthCheck.timer.j2
-    dest: /etc/systemd/system/healthCheck.timer
-    mode: '0644'
-  notify: Restart healthCheck.timer
+    - name: Deploy healthCheck.timer
+      template:
+        src: healthCheck.timer.j2
+        dest: /etc/systemd/system/healthCheck.timer
+        mode: '0644'
+      notify: Restart healthCheck.timer
 
-- name: Deploy webhookHandler.service
-  template:
-    src: webhookHandler.service.j2
-    dest: /etc/systemd/system/webhookHandler.service
-    mode: '0644'
-  notify: Restart webhookHandler.timer
+    - name: Deploy webhookHandler.service
+      template:
+        src: webhookHandler.service.j2
+        dest: /etc/systemd/system/webhookHandler.service
+        mode: '0644'
+      notify: Restart webhookHandler.service
 
-- name: Deploy webhookHandler.timer
-  template:
-    src: webhookHandler.timer.j2
-    dest: /etc/systemd/system/webhookHandler.timer
-    mode: '0644'
-  notify: Restart webhookHandler.timer
+    - name: Deploy webhookHandler.timer
+      template:
+        src: webhookHandler.timer.j2
+        dest: /etc/systemd/system/webhookHandler.timer
+        mode: '0644'
+      notify: Restart webhookHandler.timer
 
-- name: Reload systemd daemon
-  command: systemctl daemon-reload
-  notify:
-    - Restart healthCheck.timer
-    - Restart webhookHandler.timer
+    - name: Reload systemd daemon
+      command: systemctl daemon-reload
+      notify:
+        - Restart healthCheck.timer
+        - Restart webhookHandler.timer

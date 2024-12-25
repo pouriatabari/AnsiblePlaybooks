@@ -9,3 +9,15 @@
     name: webhookHandler.timer
     state: restarted
     enabled: yes
+
+- name: Restart healthCheck.service
+  systemd:
+    name: healthCheck.service
+    state: restarted
+    enabled: yes
+
+- name: Restart webhookHandler.service
+  systemd:
+    name: webhookHandler.service
+    state: restarted
+    enabled: yes
