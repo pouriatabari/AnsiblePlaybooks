@@ -11,12 +11,17 @@ for server in "${webservers[@]}"; do
   # Web Server Health check
   if curl -s --head --request GET "$server" | grep "200 OK" > /dev/null; then
     status=1
+    # Sending Metrics to the Push Gateway
+    metric_data="webserver_health{server=\"$server\",instance=\"$server\"} $status"
+    echo "$metric_data" | curl -X POST --data-binary @- "$pushgateway_url"
+    echo "Health status of $server: $status"
   else
     status=0
+    # Sending Metrics to the Push Gateway
+    metric_data="webserver_health{server=\"$server\",instance=\"$server\"} $status"
+    echo "$metric_data" | curl -X POST --data-binary @- "$pushgateway_url"
+    echo "Health status of $server: $status"
   fi
 
-  # Sending Metrics to the Push Gateway
-  metric_data="webserver_health{server=\"$server\",instance=\"$server\"} $status"
-  echo "$metric_data" | curl -X POST --data-binary @- "$pushgateway_url"
-  echo "Health status of $server: $status"
+
 done
