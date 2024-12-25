@@ -46,6 +46,14 @@
   changed_when: false
   failed_when: alertmanager_check.stdout.strip() == "alertmanager" and alertmanager_running.rc != 0
 
+- name: Ensure Alertmanager directory exists
+  file:
+    path: /etc/alertmanager
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
 - name: Copy Alert Manager configuration
   template:
     src: alertmanager.yml.j2
