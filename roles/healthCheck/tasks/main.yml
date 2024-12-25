@@ -38,4 +38,4 @@
   command: systemctl daemon-reload
   notify:
     - Restart webhookHandler.timer
-        - Restart healthCheck.timer
+    - Restart healthCheck.timer
