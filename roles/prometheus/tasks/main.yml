@@ -63,6 +63,12 @@
     group: root
     mode: 0644
 
+- name: Log in to Docker registry
+  shell: |
+    echo "{{ docker_password }}" | docker login -u "{{ docker_username }}" --password-stdin
+vars_files:
+  - docker_credentials.yml
+
 - name: Deploy monitoring stack using Docker Compose
   shell: docker compose up -d
   args:
