@@ -1,0 +1,12 @@
+groups:
+  - name: webserver_alerts
+    rules:
+      - alert: WebServerOneIsDown
+        expr: web01_health == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Web Server 1 is down"
+          description: "The web server is reporting a 0 status, indicating it is down."
+

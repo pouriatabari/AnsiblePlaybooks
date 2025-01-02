@@ -1,7 +1,11 @@
 [webservers]
-AbrNoc-WebServer-01 ansible_host=192.168.72.20
-AbrNoc-WebServer-02 ansible_host=192.168.72.21
-AbrNoc-WebServer-03 ansible_host=192.168.72.22
+webServer-01 ansible_host=192.168.72.51 ansible_user=pouriya ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+webServer-02 ansible_host=192.168.72.52 ansible_user=pouriya ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+webServer-03 ansible_host=192.168.72.53 ansible_user=pouriya ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 
 [prometheus]
-AbrNoc-PromServer-01 ansible_host=192.168.72.23 
+prometheus-01 ansible_host=192.168.72.55 ansible_user=pouriya ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+[all:vars]
+ansible_ssh_private_key_file=~/.ssh/id_rsa
+ansible_python_interpreter=/usr/bin/python3

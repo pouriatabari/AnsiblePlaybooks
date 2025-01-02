@@ -1,31 +1,33 @@
 #!/bin/bash
-
 # Webhook Port Settings
 webhook_port=5000
 
-# Receive Webhook Data and Process Alerts
-nc -l -p $webhook_port -q 1 | while read line; do
-  echo $line;
-  # echo "Received alert: $line"
+# Start listening for webhook data
+echo "Starting webhook listener on port $webhook_port..."
+nc -lk -p $webhook_port | while read line; do
+  echo "Received data: $line"
 
-  # # Extract the alert status (you may need to adjust this according to the exact structure of your alert)
-  # alert_status=$(echo "$line" | jq -r '.alerts[0].labels.status')
+  # Parse the incoming JSON to extract alert details
+  alert_status=$(echo "$line" | jq -r '.status')
+  alert_name=$(echo "$line" | jq -r '.alerts[0].labels.alertname')
 
-  # # Check if the alert indicates that the server is down (you may need to adjust this based on the alert structure)
-  # if [[ "$alert_status" == "down" ]]; then
-  #   echo "Alert indicates server down, replacing container..."
+  echo "Alert Name: $alert_name, Status: $alert_status"
 
-  #   # Check if the replacement container is already running
-  #   if ! docker ps -q -f name=webserver_replacement; then
-  #     echo "Starting a new replacement container with the same configuration..."
+  # Check if the alert is firing and matches the desired alert
+  if [[ "$alert_status" == "firing" && "$alert_name" == "WebServerDown" ]]; then
+    echo "Alert indicates server down, checking replacement container..."
 
-  #     # Define the same configuration for the new container (example: using the same image, port mappings, etc.)
-  #     docker run -d --name webserver_replacement -p 80:80 nginx
-  #     echo "Replacement container started."
-  #   else
-  #     echo "Container already exists, skipping replacement."
-  #   fi
-  # else
-  #   echo "Alert is not for server down. No action taken."
-  # fi
+    # Check if the replacement container is already running
+    if [ -z "$(docker ps -q -f name=webserver_replacement)" ]; then
+      echo "Starting a new replacement container with the same configuration..."
+
+      # Define the same configuration for the new container (example: using the same image, port mappings, etc.)
+      docker run -d --name webserver_replacement -p 8080:80 nginx
+      echo "Replacement container started on port 8080."
+    else
+      echo "Replacement container is already running. No action taken."
+    fi
+  else
+    echo "No matching alert or not firing. No action taken."
+  fi
 done

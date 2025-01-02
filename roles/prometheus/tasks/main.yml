@@ -1,79 +1,67 @@
----
-# tasks/main.yml
+# Updated tasks/main.yml with Prometheus and monitoring stack integration
+- name: Ensure Docker Compose is installed
+  apt:
+    name: docker-compose
+    state: present
 
-- name: Pull Prometheus Push Gateway image
-  command: docker pull prom/pushgateway
-
-- name: Check if Prometheus Push Gateway container exists
-  shell: >
-    docker ps -a --filter "name=pushgateway" --format '{{"{{"}}.Names{{"}}"}}'
-  register: pushgateway_check
-  changed_when: false
-
-- name: Check if Prometheus Push Gateway container is running
-  shell: >
-    docker inspect -f '{{"{{"}}.State.Running{{"}}"}}' pushgateway
-  when: pushgateway_check.stdout.strip() == "pushgateway"
-  register: pushgateway_running
-  changed_when: false
-  failed_when: pushgateway_check.stdout.strip() == "pushgateway" and pushgateway_running.rc != 0
-
-- name: Deploy Prometheus Push Gateway container if not created
-  shell: |
-    docker run --name pushgateway -d \
-    -p 9091:9091 \
-    prom/pushgateway
-  when: pushgateway_check.stdout.strip() == ""
-
-- name: Start Prometheus Push Gateway container if created but not running
-  shell: docker start pushgateway
-  when: pushgateway_check.stdout.strip() == "pushgateway" and pushgateway_running.stdout.strip() == "false"
-
-- name: Pull Alert Manager image
-  command: docker pull prom/alertmanager
-
-- name: Check if Alert Manager container exists
-  shell: >
-    docker ps -a --filter "name=alertmanager" --format '{{"{{"}}.Names{{"}}"}}'
-  register: alertmanager_check
-  changed_when: false
-
-- name: Check if Alert Manager container is running
-  shell: >
-    docker inspect -f '{{"{{"}}.State.Running{{"}}"}}' alertmanager
-  when: alertmanager_check.stdout.strip() == "alertmanager"
-  register: alertmanager_running
-  changed_when: false
-  failed_when: alertmanager_check.stdout.strip() == "alertmanager" and alertmanager_running.rc != 0
-
-- name: Ensure Alertmanager directory exists
+- name: Create directories for Prometheus configuration
   file:
-    path: /etc/alertmanager
+    path: "/etc/prometheus"
     state: directory
     owner: root
     group: root
-    mode: '0755'
+    mode: 0755
 
-- name: Copy Alert Manager configuration
+- name: Create directories for Alertmanager configuration
+  file:
+    path: "/etc/alertmanager"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Copy Prometheus configuration
   template:
-    src: alertmanager.yml.j2
-    dest: /etc/alertmanager/alertmanager.yml
-  register: alertmanager_config_changed
+    src: prometheus.yml.j2
+    dest: "/etc/prometheus/prometheus.yml"
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart Prometheus services
 
-- name: Restart Alert Manager container if configuration changes
-  shell: docker restart alertmanager
-  when: 
-    - alertmanager_config_changed.changed
-    - alertmanager_check.stdout.strip() == "alertmanager"
+- name: Copy Alertmanager configuration
+  template:
+    src: alertmanager.yaml.j2
+    dest: "/etc/alertmanager/alertmanager.yml"
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart Alertmanager services
 
-- name: Deploy Alert Manager container if not created
-  shell: |
-    docker run --name alertmanager -d \
-    -p 9093:9093 \
-    -v /etc/alertmanager:/etc/alertmanager:ro \
-    prom/alertmanager
-  when: alertmanager_check.stdout.strip() == ""
+- name: Copy Prometheus alert rules
+  template:
+    src: alert_rules.yml.j2
+    dest: "/etc/prometheus/alert_rules.yml"
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart Prometheus services
 
-- name: Start Alert Manager container if created but not running
-  shell: docker start alertmanager
-  when: alertmanager_check.stdout.strip() == "alertmanager" and alertmanager_running.stdout.strip() == "false"
+- name: Copy Docker Compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: "/etc/prometheus-stack/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Deploy monitoring stack using Docker Compose
+  shell: docker-compose up -d
+  args:
+    chdir: "/etc/prometheus-stack"
+  register: monitoring_stack_status
+  changed_when: monitoring_stack_status.stdout.find("Creating") != -1
+  notify:
+    - Restart Prometheus services
+    - Restart Alertmanager services
+    - Restart Push Gateway services

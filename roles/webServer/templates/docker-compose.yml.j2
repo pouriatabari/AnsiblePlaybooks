@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: {{ inventory_hostname }}
+    ports:
+      - "80:80"
+    volumes:
+      - /var/www/{{ inventory_hostname }}/index.html:/usr/share/nginx/html/index.html:ro

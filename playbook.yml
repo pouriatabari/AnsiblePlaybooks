@@ -1,15 +1,15 @@
 - hosts: webservers
   become: true
-#  become_user: controller
+  #  become_user: pouriya
   become_method: sudo
   roles:
     - common
     - webServer
-
+    - healthCheck
 
 - hosts: prometheus
   become: true
-#  become_user: controller
+  #  become_user: pouriya
   become_method: sudo
   roles:
     - common

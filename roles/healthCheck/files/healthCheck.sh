@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # Web Server Health Variables
-web01_health="http://192.168.72.20"
-web02_health="http://192.168.72.21"
-web03_health="http://192.168.72.22"
+web01_health="http://192.168.72.51"
+web02_health="http://192.168.72.52"
+web03_health="http://192.168.72.53"
 
 # Web Server Address List (Using Variable Names)
 webservers=($web01_health $web02_health $web03_health)
 
 # Push Gateway Address
-pushgateway_url="http://192.168.72.23:9091/metrics/job/webserver_health"
+pushgateway_url="http://192.168.72.54:9091/metrics/job/webserver_health"
 
 # Loop through each server to check health status
 for server in "${webservers[@]}"; do

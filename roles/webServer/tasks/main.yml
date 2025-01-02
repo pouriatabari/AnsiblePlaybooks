@@ -1,8 +1,8 @@
----
-# tasks/main.yml
-
-- name: Pull Nginx image
-  command: docker pull nginx
+# Updated tasks/main.yml with handler integration
+- name: Ensure Docker Compose is installed
+  apt:
+    name: docker-compose
+    state: present
 
 - name: Create directories for custom HTML
   file:
@@ -19,29 +19,27 @@
     owner: root
     group: root
     mode: 0644
+  notify: Restart Nginx services
 
-- name: Check if Nginx container exists
-  shell: >
-    docker ps -a --filter "name={{ inventory_hostname }}" --format '{{"{{"}}.Names{{"}}"}}'
-  register: nginx_container_check
+- name: Copy Docker Compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: "/var/www/{{ inventory_hostname }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart Nginx services
+
+- name: Check if Docker Compose services are up-to-date
+  shell: docker-compose config
+  args:
+    chdir: "/var/www/{{ inventory_hostname }}"
+  register: compose_config_check
   changed_when: false
 
-- name: Check if Nginx container is running
-  shell: >
-    docker inspect -f '{{"{{"}}.State.Running{{"}}"}}' {{ inventory_hostname }}
-  when: nginx_container_check.stdout.strip() == "{{ inventory_hostname }}"
-  register: nginx_container_running
-  changed_when: false
-  failed_when: nginx_container_check.stdout.strip() == "{{ inventory_hostname }}" and nginx_container_running.rc != 0
-
-- name: Deploy Nginx container if not created
-  shell: |
-    docker run --name {{ inventory_hostname }} -d \
-    -p 80:80 \
-    -v /var/www/{{ inventory_hostname }}/index.html:/usr/share/nginx/html/index.html:ro \
-    nginx
-  when: nginx_container_check.stdout.strip() == ""
-
-- name: Start Nginx container if created but not running
-  shell: docker start {{ inventory_hostname }}
-  when: nginx_container_check.stdout.strip() == "{{ inventory_hostname }}" and nginx_container_running.stdout.strip() == "false"
+- name: Start Nginx using Docker Compose if config has changed
+  shell: docker-compose up -d
+  args:
+    chdir: "/var/www/{{ inventory_hostname }}"
+  when: compose_config_check.changed
+  notify: Restart Nginx services
