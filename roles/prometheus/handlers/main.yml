@@ -1,12 +1,14 @@
----
-# handlers/main.yml
+- name: Restart Push Gateway services
+  shell: docker compose restart pushgateway
+  args:
+    chdir: "/etc/prometheus-stack"
 
-- name: Restart Push Gateway
-  docker_container:
-    name: pushgateway
-    state: restarted
+- name: Restart Alertmanager services
+  shell: docker compose restart alertmanager
+  args:
+    chdir: "/etc/prometheus-stack"
 
-- name: Restart Alert Manager
-  docker_container:
-    name: alertmanager
-    state: restarted
+- name: Restart Prometheus services
+  shell: docker compose restart prometheus
+  args:
+    chdir: "/etc/prometheus-stack"
