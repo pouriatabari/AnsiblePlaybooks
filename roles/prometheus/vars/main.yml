@@ -3,3 +3,4 @@
 
 pushgateway_port: 9091
 alertmanager_port: 9093
+vars_files: docker_credentials.yml
