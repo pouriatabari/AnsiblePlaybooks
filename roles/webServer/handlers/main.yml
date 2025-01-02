@@ -1,6 +1,8 @@
 ---
 # handlers/main.yml
-- name: Restart Nginx container
-  docker_container:
-    name: "{{ webserver_name }}"
-    state: restarted
+- name: Restart Nginx services
+  shell: |
+    docker-compose down
+    docker-compose up -d
+  args:
+    chdir: "/var/www/{{ inventory_hostname }}"
