@@ -2,7 +2,7 @@
 # handlers/main.yml
 - name: Restart Nginx services
   shell: |
-    docker-compose down
-    docker-compose up -d
+    docker compose down
+    docker compose up -d
   args:
     chdir: "/var/www/{{ inventory_hostname }}"

@@ -31,14 +31,14 @@
   notify: Restart Nginx services
 
 - name: Check if Docker Compose services are up-to-date
-  shell: docker-compose config
+  shell: docker compose config
   args:
     chdir: "/var/www/{{ inventory_hostname }}"
   register: compose_config_check
   changed_when: false
 
 - name: Start Nginx using Docker Compose if config has changed
-  shell: docker-compose up -d
+  shell: docker compose up -d
   args:
     chdir: "/var/www/{{ inventory_hostname }}"
   when: compose_config_check.changed
